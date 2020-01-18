@@ -1,6 +1,8 @@
+import tensorflow as tf
 from tensorflow.keras.layers import (
     Conv2D, SeparableConv2D, ReLU, add,
-    BatchNormalization, DepthwiseConv2D
+    BatchNormalization, DepthwiseConv2D,
+    AveragePooling2D, Lambda, concatenate
 )
 from tensorflow.keras import backend as K
 
@@ -82,4 +84,28 @@ def BottleNeck(input_tensor, filters, kernel_size, t_channels, strides, n_layers
     )
     for _ in range(1, n_layers):
         x = _bottleneck(x, filters, kernel_size, t_channels, 1)
+    return x
+
+
+def PPM(input_tensor, bin_sizes, height=32, width=64):
+    '''Pyramid Pooling Module
+    References:
+        https://arxiv.org/pdf/1902.04502.pdf
+        https://arxiv.org/pdf/1612.01105.pdf
+    Params:
+        input_tensor    -> Input Tensor
+        bin_size        -> PSPNet Bin Sizes
+        height          -> Image Height
+        width           -> Image Width
+    '''
+    _list = [input_tensor]
+    for size in bin_sizes:
+        x = AveragePooling2D(
+            pool_size=(width // size, height // size),
+            strides=(width // size, height // size)
+        )(input_tensor)
+        x = Conv2D(128, 3, 2, padding='same')(x)
+        x = Lambda(lambda x: tf.image.resize(x, (w,h)))(x)
+        _list.append(x)
+    x = concatenate(_list)
     return x
