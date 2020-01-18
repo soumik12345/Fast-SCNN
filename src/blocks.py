@@ -23,7 +23,7 @@ def ConvBlock(input_tensor, filters, kernel_size, strides, padding='same', activ
         strides=strides, padding=padding
     )(input_tensor)
     x = BatchNormalization()(x)
-    x = ReLU(x)
+    x = ReLU()(x)
     return x
 
 
@@ -45,7 +45,7 @@ def DSConvBlock(input_tensor, filters, kernel_size, strides, padding='same', act
         strides=strides, padding=padding
     )(input_tensor)
     x = BatchNormalization()(x)
-    x = ReLU(x)
+    x = ReLU()(x)
     return x
 
 
@@ -61,9 +61,9 @@ def _bottleneck(input_tensor, filters, kernel_size, t_channels, strides, residua
     x = ConvBlock(
         x, filters, (1, 1),
         (1, 1), activation=False
-    )(x)
+    )
     if residual:
-        x = add()([x, input_tensor])
+        x = add([x, input_tensor])
     return x
 
 
@@ -105,7 +105,7 @@ def PPM(input_tensor, bin_sizes, height=32, width=64):
             strides=(width // size, height // size)
         )(input_tensor)
         x = Conv2D(128, 3, 2, padding='same')(x)
-        x = Lambda(lambda x: tf.image.resize(x, (w,h)))(x)
+        x = Lambda(lambda x: tf.image.resize(x, (width, height)))(x)
         _list.append(x)
     x = concatenate(_list)
     return x
