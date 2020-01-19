@@ -1,6 +1,5 @@
 from glob import glob
 import tensorflow as tf
-from tensorflow.data.experimental import AUTOTUNE, map_and_batch
 
 
 def check_validity(image_list, mask_list):
@@ -26,7 +25,8 @@ def get_image(image_path, mask=False, flip=0):
     '''
     img = tf.io.read_file(image_path)
     if not mask:
-        img = tf.cast(tf.image.decode_png(img, channels=3), dtype=tf.float32)
+        img = tf.image.decode_png(img, channels=3)
+        img = tf.cast(tf.image.resize(images=img, size=[1024, 2048]), dtype=tf.float32)
         img = tf.image.random_brightness(img, max_delta=50.)
         img = tf.image.random_saturation(img, lower=0.5, upper=1.5)
         img = tf.image.random_hue(img, max_delta=0.2)
@@ -41,8 +41,7 @@ def get_image(image_path, mask=False, flip=0):
         )
     else:
         img = tf.image.decode_png(img, channels=1)
-        img = tf.cast(tf.image.resize(images=img, size=[
-                      img_height, img_width]), dtype=tf.uint8)
+        img = tf.cast(tf.image.resize(images=img, size=[1024, 2048]), dtype=tf.uint8)
         img = tf.case(
             [(
                 tf.greater(flip, 0),
@@ -68,7 +67,7 @@ def load_data(image_path, mask_path):
     return image, mask
 
 
-def get_dataset(image_list, mask_list):
+def get_dataset(image_list, mask_list, batch_size=12):
     '''Get Dataset
     Params:
         image_list   -> List of image files
@@ -76,12 +75,12 @@ def get_dataset(image_list, mask_list):
     '''
     dataset = tf.data.Dataset.from_tensor_slices((image_list, mask_list))
     dataset = dataset.shuffle(buffer_size=128)
-    dataset = train_dataset.apply(
-        map_and_batch(
+    dataset = dataset.apply(
+        tf.data.experimental.map_and_batch(
             map_func=load_data, batch_size=batch_size,
-            num_parallel_calls=AUTOTUNE, drop_remainder=True
+            num_parallel_calls=tf.data.experimental.AUTOTUNE, drop_remainder=True
         )
     )
     dataset = dataset.repeat()
-    dataset = dataset.prefetch(AUTOTUNE)
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     return dataset
