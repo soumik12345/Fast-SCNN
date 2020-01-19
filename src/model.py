@@ -1,6 +1,9 @@
 from .blocks import *
-from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
+from tensorflow.keras.layers import (
+    Input, UpSampling2D, add,
+    SeparableConv2D, ReLU, BatchNormalization
+)
 
 
 def FastSCNN(input_shape=(2048, 1024, 3)):
@@ -18,5 +21,8 @@ def FastSCNN(input_shape=(2048, 1024, 3)):
     feat_ext_layer = BottleNeck(downsample_layer, 64, (3, 3), 6, 2, 3)
     feat_ext_layer = BottleNeck(feat_ext_layer, 96, (3, 3), 6, 2, 3)
     feat_ext_layer = BottleNeck(feat_ext_layer, 128, (3, 3), 6, 1, 3)
+    # Pyramid Pooling Module
     feat_ext_layer = PPM(feat_ext_layer, [2, 4, 6, 8])
-    return Model(model_input, feat_ext_layer, name='Fast-SCNN')
+    # Feature Fusion Module
+    feature_fusion_layer = FFM(downsample_layer, feat_ext_layer)
+    return Model(model_input, feature_fusion_layer, name='Fast-SCNN')

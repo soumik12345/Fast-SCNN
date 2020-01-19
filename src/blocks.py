@@ -1,8 +1,8 @@
 import tensorflow as tf
 from tensorflow.keras.layers import (
-    Conv2D, SeparableConv2D, ReLU, add,
-    BatchNormalization, DepthwiseConv2D,
-    AveragePooling2D, Lambda, concatenate
+    Conv2D, SeparableConv2D, ReLU, 
+    BatchNormalization, DepthwiseConv2D, add,
+    AveragePooling2D, Lambda, concatenate, UpSampling2D
 )
 from tensorflow.keras import backend as K
 
@@ -109,3 +109,29 @@ def PPM(input_tensor, bin_sizes, height=32, width=64):
         _list.append(x)
     x = concatenate(_list)
     return x
+
+
+
+def FFM(downsample_layer, feat_ext_layer):
+    '''Feature Fusion Module
+    Reference: https://arxiv.org/pdf/1902.04502.pdf
+    Params:
+        downsample_layer -> Output of Downsample Layers
+        feat_ext_layer   -> Output of Global Feature Extraction
+    '''
+    fusion_layer_1 = ConvBlock(
+        downsample_layer, 128, (1, 1),
+        (1, 1), 'same', False
+    )
+    fusion_layer_2 = UpSampling2D((4, 4))(feat_ext_layer)
+    fusion_layer_2 = SeparableConv2D(
+        128, (3, 3), padding='same', strides = (1, 1),
+        activation=None, dilation_rate=(4, 4)
+    )(fusion_layer_2)
+    fusion_layer_2 = BatchNormalization()(fusion_layer_2)
+    fusion_layer_2 = ReLU()(fusion_layer_2)
+    fusion_layer_2 = Conv2D(128, 1, 1, padding='same', activation=None)(fusion_layer_2)
+    fusion_layer = add([fusion_layer_1, fusion_layer_2])
+    fusion_layer = BatchNormalization()(fusion_layer)
+    fusion_layer = ReLU()(fusion_layer)
+    return fusion_layer
