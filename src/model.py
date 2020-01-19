@@ -6,7 +6,7 @@ from tensorflow.keras.layers import (
 )
 
 
-def FastSCNN(input_shape=(2048, 1024, 3)):
+def FastSCNN(input_shape=(2048, 1024, 3), n_classes=12):
     '''Fast-SCNN Model
     Reference: https://arxiv.org/pdf/1902.04502.pdf
     Params:
@@ -25,4 +25,6 @@ def FastSCNN(input_shape=(2048, 1024, 3)):
     feat_ext_layer = PPM(feat_ext_layer, [2, 4, 6, 8])
     # Feature Fusion Module
     feature_fusion_layer = FFM(downsample_layer, feat_ext_layer)
-    return Model(model_input, feature_fusion_layer, name='Fast-SCNN')
+    # Classification Module
+    output_layer = Classifier(feature_fusion_layer, n_classes=n_classes)
+    return Model(model_input, output_layer, name='Fast-SCNN')

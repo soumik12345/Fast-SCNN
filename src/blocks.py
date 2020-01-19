@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import (
-    Conv2D, SeparableConv2D, ReLU, 
-    BatchNormalization, DepthwiseConv2D, add,
+    Conv2D, SeparableConv2D, ReLU, Dropout,
+    BatchNormalization, DepthwiseConv2D, add, Softmax,
     AveragePooling2D, Lambda, concatenate, UpSampling2D
 )
 from tensorflow.keras import backend as K
@@ -135,3 +135,24 @@ def FFM(downsample_layer, feat_ext_layer):
     fusion_layer = BatchNormalization()(fusion_layer)
     fusion_layer = ReLU()(fusion_layer)
     return fusion_layer
+
+
+
+def Classifier(input_tensor, n_classes=12):
+    '''Feature Fusion Module
+    Reference: https://arxiv.org/pdf/1902.04502.pdf
+    Params:
+        input_tensor -> Input Tensor
+        n_classes    -> Number of output classes
+    '''
+    x = SeparableConv2D(128, (3, 3), padding='same', strides = (1, 1))(input_tensor)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = SeparableConv2D(128, (3, 3), padding='same', strides = (1, 1))(input_tensor)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    x = ConvBlock(x, n_classes, (1, 1), (1, 1), activation=False)
+    x = Dropout(0.3)(x)
+    x = UpSampling2D((8, 8))(x)
+    x = Softmax()(x)
+    return x
