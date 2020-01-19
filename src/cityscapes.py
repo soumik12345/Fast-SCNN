@@ -1,5 +1,6 @@
 from glob import glob
 import tensorflow as tf
+from tensorflow.data.experimental import AUTOTUNE, map_and_batch
 
 
 def check_validity(image_list, mask_list):
@@ -65,3 +66,22 @@ def load_data(image_path, mask_path):
     image = get_image(image_path, flip=flip)
     mask = get_image(mask_path, True, flip)
     return image, mask
+
+
+def get_dataset(image_list, mask_list):
+    '''Get Dataset
+    Params:
+        image_list   -> List of image files
+        mask_list    -> List of mask files
+    '''
+    dataset = tf.data.Dataset.from_tensor_slices((image_list, mask_list))
+    dataset = dataset.shuffle(buffer_size=128)
+    dataset = train_dataset.apply(
+        map_and_batch(
+            map_func=load_data, batch_size=batch_size,
+            num_parallel_calls=AUTOTUNE, drop_remainder=True
+        )
+    )
+    dataset = dataset.repeat()
+    dataset = dataset.prefetch(AUTOTUNE)
+    return dataset
