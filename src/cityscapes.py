@@ -50,3 +50,18 @@ def get_image(image_path, mask=False, flip=0):
             default=lambda: img
         )
     return img
+
+
+def load_data(image_path, mask_path):
+    '''Map Function for Dataset
+    Params:
+        image_path  -> Image Path
+        mask_path   -> Mask Path
+    '''
+    flip = tf.random.uniform(
+        shape=[1, ], minval=0,
+        maxval=2, dtype=tf.int32
+    )[0]
+    image = get_image(image_path, flip=flip)
+    mask = get_image(mask_path, True, flip)
+    return image, mask
