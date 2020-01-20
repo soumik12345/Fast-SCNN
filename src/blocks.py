@@ -5,7 +5,6 @@ from tensorflow.keras.layers import (
     AveragePooling2D, Lambda, concatenate, UpSampling2D
 )
 from tensorflow.keras import backend as K
-from tensorflow.keras.regularizers import l2
 
 
 def ConvBlock(input_tensor, filters, kernel_size, strides, padding='same', activation=True):
@@ -21,8 +20,7 @@ def ConvBlock(input_tensor, filters, kernel_size, strides, padding='same', activ
     '''
     x = Conv2D(
         filters, kernel_size,
-        strides=strides, padding=padding,
-        kernel_regularizer=l2(4e-5)
+        strides=strides, padding=padding
     )(input_tensor)
     x = BatchNormalization()(x)
     x = ReLU()(x)
@@ -44,8 +42,7 @@ def DSConvBlock(input_tensor, filters, kernel_size, strides, padding='same', act
     '''
     x = SeparableConv2D(
         filters, kernel_size,
-        strides=strides, padding=padding,
-        kernel_regularizer=l2(4e-5)
+        strides=strides, padding=padding
     )(input_tensor)
     x = BatchNormalization()(x)
     x = ReLU()(x)
@@ -107,7 +104,7 @@ def PPM(input_tensor, bin_sizes, height=32, width=64):
             pool_size=(width // size, height // size),
             strides=(width // size, height // size)
         )(input_tensor)
-        x = Conv2D(128, 3, 2, padding='same', kernel_regularizer=l2(4e-5))(x)
+        x = Conv2D(128, 3, 2, padding='same')(x)
         x = Lambda(lambda x: tf.image.resize(x, (width, height)))(x)
         _list.append(x)
     x = concatenate(_list)
@@ -129,13 +126,13 @@ def FFM(downsample_layer, feat_ext_layer):
     fusion_layer_2 = UpSampling2D((4, 4))(feat_ext_layer)
     fusion_layer_2 = SeparableConv2D(
         128, (3, 3), padding='same', strides = (1, 1),
-        activation=None, dilation_rate=(4, 4), kernel_regularizer=l2(4e-5)
+        activation=None, dilation_rate=(4, 4)
     )(fusion_layer_2)
     fusion_layer_2 = BatchNormalization()(fusion_layer_2)
     fusion_layer_2 = ReLU()(fusion_layer_2)
     fusion_layer_2 = Conv2D(
-        128, 1, 1, padding='same', activation=None,
-        kernel_regularizer=l2(4e-5)
+        128, 1, 1, padding='same',
+        activation=None
     )(fusion_layer_2)
     fusion_layer = add([fusion_layer_1, fusion_layer_2])
     fusion_layer = BatchNormalization()(fusion_layer)
@@ -151,16 +148,10 @@ def Classifier(input_tensor, n_classes=12):
         input_tensor -> Input Tensor
         n_classes    -> Number of output classes
     '''
-    x = SeparableConv2D(
-        128, (3, 3), padding='same', strides = (1, 1),
-        kernel_regularizer=l2(4e-5)
-    )(input_tensor)
+    x = SeparableConv2D(128, (3, 3), padding='same', strides = (1, 1))(input_tensor)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    x = SeparableConv2D(
-        128, (3, 3), padding='same', strides = (1, 1),
-        kernel_regularizer=l2(4e-5)
-    )(input_tensor)
+    x = SeparableConv2D(128, (3, 3), padding='same', strides = (1, 1))(input_tensor)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     x = ConvBlock(x, n_classes, (1, 1), (1, 1), activation=False)
