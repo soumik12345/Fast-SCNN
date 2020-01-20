@@ -8,6 +8,27 @@ Tensorflow 2.x implementation of [Fast-SCNN: Fast Semantic Segmentation Network]
 - ```cd ./Fast-SCNN/data```
 - ```bash cityscapes.sh```
 
+## Project Directory Structure
+
+<code><pre>.
+├── README.md
+├── data
+│   ├── cityscapes.sh
+│   ├── train_imgs
+│   ├── train_labels
+│   ├── val_imgs
+│   └── val_labels
+├── model.png
+├── requirements.txt
+├── src
+│   ├── blocks.py
+│   ├── cityscapes.py
+│   ├── model.py
+│   └── utils.py
+└── train.py
+
+</code></pre>
+
 ## Model Architecture
 
 ![](./model.png)
