@@ -4,3 +4,4 @@ env/
 test.py
 Test.ipynb
 .ipynb_checkpoints/
+.DS_Store
