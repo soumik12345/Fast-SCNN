@@ -27,6 +27,7 @@ def get_image(image_path, mask=False, flip=0):
     if not mask:
         img = tf.image.decode_png(img, channels=3)
         img = tf.cast(tf.image.resize(images=img, size=[1024, 2048]), dtype=tf.float32)
+        img = tf.image.transpose(img)
         img = tf.image.random_brightness(img, max_delta=50.)
         img = tf.image.random_saturation(img, lower=0.5, upper=1.5)
         img = tf.image.random_hue(img, max_delta=0.2)
