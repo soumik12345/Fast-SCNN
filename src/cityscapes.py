@@ -43,6 +43,7 @@ def get_image(image_path, mask=False, flip=0):
     else:
         img = tf.image.decode_png(img, channels=1)
         img = tf.cast(tf.image.resize(images=img, size=[1024, 2048]), dtype=tf.uint8)
+        img = tf.image.transpose(img)
         img = tf.case(
             [(
                 tf.greater(flip, 0),
