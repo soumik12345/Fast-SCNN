@@ -1,8 +1,10 @@
+import numpy as np
 from glob import glob
 from src.model import *
 from src.utils import *
 import tensorflow as tf
 from src.cityscapes import *
+from datetime import datetime
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.optimizers.schedules import PolynomialDecay
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, LearningRateScheduler
@@ -11,15 +13,13 @@ from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, LearningRat
 batch_size = 12
 
 train_dataset = get_dataset(
-    './data/train_imgs/*',
-    './data/train_labels/*',
-    batch_size=batch_size
+    glob('./data/train_imgs/*'),
+    glob('./data/train_labels/*')
 )
 
 val_dataset = get_dataset(
-    './data/val_imgs/*',
-    './data/val_labels/*',
-    batch_size=batch_size
+    glob('./data/val_imgs/*'),
+    glob('./data/val_labels/*')
 )
 
 loss = SparseCategoricalCrossentropy(from_logits=True)
@@ -34,7 +34,8 @@ with strategy.scope():
     optimizer = tf.keras.optimizers.SGD(momentum=0.9, learning_rate=lr_scheduler)
     model.compile(loss=loss, optimizer=optimizer, metrics=['accuracy'])
 
-tensorboard = TensorBoard(log_dir='logs', write_graph=True, update_freq='batch')
+logdir = "logs/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard = TensorBoard(log_dir=logdir, write_graph=True, update_freq='batch')
 model_checkpoint = ModelCheckpoint(
     mode='min', filepath='fast_scnn_weights.h5',
     monitor='val_loss', save_best_only='True',
