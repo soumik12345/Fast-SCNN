@@ -28,7 +28,7 @@ strategy = tf.distribute.MirroredStrategy()
 with strategy.scope():
     model = FastSCNN(n_classes=19)
     for layer in model.layers:
-        if isinstance(tf.keras.layers.Conv2D) or isinstance(tf.keras.layers.SeparableConv2D):
+        if isinstance(layer, tf.keras.layers.Conv2D) or isinstance(layer, tf.keras.layers.SeparableConv2D):
             layer.kernel_regularizer = tf.keras.regularizers.l2(4e-5)
     lr_scheduler = PolynomialDecay(0.045, 1000, 1e-4, 0.9)
     optimizer = tf.keras.optimizers.SGD(momentum=0.9, learning_rate=lr_scheduler)
