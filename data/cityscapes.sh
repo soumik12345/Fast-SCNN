@@ -5,6 +5,8 @@ wget --keep-session-cookies --save-cookies=cookies.txt --post-data 'username=<YO
 wget --load-cookies cookies.txt --content-disposition https://www.cityscapes-dataset.com/file-handling/?packageID=3
 rm index.html
 unzip -q gtFine_trainvaltest.zip
+rm README
+rm license.txt
 unzip -q leftImg8bit_trainvaltest.zip
 mv ./leftImg8bit/train/**/*leftImg8bit.png ./train_imgs
 mv ./leftImg8bit/val/**/*leftImg8bit.png ./val_imgs
